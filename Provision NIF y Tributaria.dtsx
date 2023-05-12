@@ -1,0 +1,1113 @@
+﻿<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="5/25/2020 5:17:04 PM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="ENSE26LN060"
+  DTS:CreatorName="DISTRILUZ\edelgadoc"
+  DTS:DTSID="{C3E52B77-3621-4AF1-9A01-B7372CE219FC}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="15.0.2000.94"
+  DTS:LocaleID="10250"
+  DTS:ObjectName="Package"
+  DTS:PackageType="5"
+  DTS:VersionBuild="128"
+  DTS:VersionGUID="{9A788795-D754-44F8-B5D6-7BE402737A72}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[Notificaciones Ensa]"
+      DTS:CreationName="SMTP"
+      DTS:DTSID="{8192C8A5-B9F2-4EF1-BB3C-BE08670380C0}"
+      DTS:ObjectName="Notificaciones Ensa">
+      <DTS:ObjectData>
+        <SmtpConnectionManager
+          ConnectionString="SmtpServer=owa.fonafe.gob.pe;UseWindowsAuthentication=False;EnableSsl=False;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[OptimusNGC]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{8E976E38-295A-4941-BFC4-AD7B8FFE760D}"
+      DTS:ObjectName="OptimusNGC">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectionString="Data Source=DTLCDPOPTBDCL;Initial Catalog=OptimusNGC;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[Provision NIF Excel]"
+      DTS:CreationName="EXCEL"
+      DTS:DTSID="{3C2E3194-139D-440C-81FA-36ADC50FAB41}"
+      DTS:ObjectName="Provision NIF Excel">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectionString="Provider=Microsoft.ACE.OLEDB.12.0;Data Source=D:\Paso\Paso.xlsx;Extended Properties=&quot;EXCEL 12.0 XML;HDR=YES&quot;;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{39B0CB69-9B70-4A77-94B9-BA98BB94691B}"
+      DTS:IncludeInDebugDump="2345"
+      DTS:Namespace="User"
+      DTS:ObjectName="idEmpresa">
+      <DTS:VariableValue
+        DTS:DataType="2">2</DTS:VariableValue>
+    </DTS:Variable>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{CFD9F1FE-AEA5-4606-A067-2C0D6DD20DE1}"
+      DTS:IncludeInDebugDump="6789"
+      DTS:Namespace="User"
+      DTS:ObjectName="IdMotivoModificaDB">
+      <DTS:VariableValue
+        DTS:DataType="3">0</DTS:VariableValue>
+    </DTS:Variable>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{F858710F-AF39-4119-BD36-BB7F71A6B247}"
+      DTS:IncludeInDebugDump="2345"
+      DTS:Namespace="User"
+      DTS:ObjectName="NotificacionBody">
+      <DTS:VariableValue
+        DTS:DataType="8"
+        xml:space="preserve"></DTS:VariableValue>
+    </DTS:Variable>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{90855A1E-E0E3-4F79-90F8-90EB1738FF45}"
+      DTS:IncludeInDebugDump="6789"
+      DTS:Namespace="User"
+      DTS:ObjectName="SoloTributaria">
+      <DTS:VariableValue
+        DTS:DataType="2">0</DTS:VariableValue>
+    </DTS:Variable>
+  </DTS:Variables>
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\Actualizar Provision de Cobranza"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Tarea Ejecutar SQL"
+      DTS:DTSID="{3027FAE4-2392-4F4C-95D7-3A270628F0AD}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Actualizar Provision de Cobranza"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:PropertyExpression
+        DTS:Name="SqlStatementSource">"Declare @idMotivoModificaDB int = ?, @idEmpresa SmallInt = ? 
+
+IF " + (DT_STR, 1, 1252 ) @[User::SoloTributaria] + " = 0 
+BEGIN
+	Update pd set ExcluidoProvision = 1 , idMotivoModificaDB = @idMotivoModificaDB
+	From cont.Provision (nolock) pp 
+	Join cont.ProvisionDocumentos (nolock) pd 
+				on pp.IdProvision = pd.IdProvision 
+	Where pp.idempresa = @idEmpresa and pp.IdProvisionTipo = 1 and pp.PeriodoContable = (Select top 1 PeriodoReporte From Temporal.paso)
+
+	Update d set ExcluidoProvision = 0, idmotivomodificaDB =  @idMotivoModificaDB
+	From Temporal.paso p 
+	Join cont.ProvisionDocumentos (nolock) d 
+		   on p.suministro = d.idnroservicio 
+	Join cont.Provision (nolock) x 
+		   on x.idprovision = d.idprovision 
+	Where d.idempresa = @idEmpresa And d.idtipodocumento = p.IdTipoDocumento and p.NroDocumento = d.NroDocumento and x.PeriodoContable = p.PeriodoReporte 
+
+	Update dd Set  MontoProvisionAutoriza = tt.ImporteFinal
+		   ,  MontoProvisionPreAutoriza = tt.ImporteFinal
+		   ,  MontoProvisionpropuesta = tt.ImporteFinal
+		   ,  IdMotivoModificaDB =  @idMotivoModificaDB
+	From ( Select pp.IdProvision, sum(pd.MontoProvision) ImporteFinal
+		   From cont.Provision (nolock) pp
+		   inner join cont.ProvisionDocumentos (nolock) pd
+				on pp.IdProvision = pd.IdProvision
+			Where pp.idempresa = @idEmpresa and pp.PeriodoContable = (Select top 1 PeriodoReporte From Temporal.paso)
+			and pp.IdProvisionTipo = 1 and pd.ExcluidoProvision = 0 
+			Group by pp.IdProvision ) tt
+		   inner join cont.Provision (nolock) dd
+				 on dd.IdProvision = tt.IdProvision
+END 
+
+Update dd Set  MontoProvisionAutoriza = tt.ImporteFinal
+	,  MontoProvisionPreAutoriza = tt.ImporteFinal 
+	,  MontoProvisionpropuesta = tt.ImporteFinal 
+	, IdMotivoModificaDB =  @idMotivoModificaDB 
+From ( Select pp.IdProvision, sum(pd.MontoProvision) ImporteFinal
+		From cont.Provision (nolock) pp
+		inner join cont.ProvisionDocumentos (nolock) pd
+			on pp.IdProvision = pd.IdProvision
+		Where pp.idempresa = @idEmpresa and pp.PeriodoContable = (Select top 1 PeriodoReporte From Temporal.paso)
+		and pp.IdProvisionTipo = 2 and pd.ExcluidoProvision = 0
+		Group by pp.IdProvision ) tt
+		inner join cont.Provision (nolock) dd
+			on dd.IdProvision = tt.IdProvision
+"</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{8E976E38-295A-4941-BFC4-AD7B8FFE760D}"
+          SQLTask:SqlStatementSource="Declare @idMotivoModificaDB int = ?, @idEmpresa SmallInt = ? &#xA;&#xA;IF 0 = 0 &#xA;BEGIN&#xA;&#x9;Update pd set ExcluidoProvision = 1 , idMotivoModificaDB = @idMotivoModificaDB&#xA;&#x9;From cont.Provision (nolock) pp &#xA;&#x9;Join cont.ProvisionDocumentos (nolock) pd &#xA;&#x9;&#x9;&#x9;&#x9;on pp.IdProvision = pd.IdProvision &#xA;&#x9;Where pp.idempresa = @idEmpresa and pp.IdProvisionTipo = 1 and pp.PeriodoContable = (Select top 1 PeriodoReporte From Temporal.paso)&#xA;&#xA;&#x9;Update d set ExcluidoProvision = 0, idmotivomodificaDB =  @idMotivoModificaDB&#xA;&#x9;From Temporal.paso p &#xA;&#x9;Join cont.ProvisionDocumentos (nolock) d &#xA;&#x9;&#x9;   on p.suministro = d.idnroservicio &#xA;&#x9;Join cont.Provision (nolock) x &#xA;&#x9;&#x9;   on x.idprovision = d.idprovision &#xA;&#x9;Where d.idempresa = @idEmpresa And d.idtipodocumento = p.IdTipoDocumento and p.NroDocumento = d.NroDocumento and x.PeriodoContable = p.PeriodoReporte &#xA;&#xA;&#x9;Update dd Set  MontoProvisionAutoriza = tt.ImporteFinal&#xA;&#x9;&#x9;   ,  MontoProvisionPreAutoriza = tt.ImporteFinal&#xA;&#x9;&#x9;   ,  MontoProvisionpropuesta = tt.ImporteFinal&#xA;&#x9;&#x9;   ,  IdMotivoModificaDB =  @idMotivoModificaDB&#xA;&#x9;From ( Select pp.IdProvision, sum(pd.MontoProvision) ImporteFinal&#xA;&#x9;&#x9;   From cont.Provision (nolock) pp&#xA;&#x9;&#x9;   inner join cont.ProvisionDocumentos (nolock) pd&#xA;&#x9;&#x9;&#x9;&#x9;on pp.IdProvision = pd.IdProvision&#xA;&#x9;&#x9;&#x9;Where pp.idempresa = @idEmpresa and pp.PeriodoContable = (Select top 1 PeriodoReporte From Temporal.paso)&#xA;&#x9;&#x9;&#x9;and pp.IdProvisionTipo = 1 and pd.ExcluidoProvision = 0 &#xA;&#x9;&#x9;&#x9;Group by pp.IdProvision ) tt&#xA;&#x9;&#x9;   inner join cont.Provision (nolock) dd&#xA;&#x9;&#x9;&#x9;&#x9; on dd.IdProvision = tt.IdProvision&#xA;END &#xA;&#xA;Update dd Set  MontoProvisionAutoriza = tt.ImporteFinal&#xA;&#x9;,  MontoProvisionPreAutoriza = tt.ImporteFinal &#xA;&#x9;,  MontoProvisionpropuesta = tt.ImporteFinal &#xA;&#x9;, IdMotivoModificaDB =  @idMotivoModificaDB &#xA;From ( Select pp.IdProvision, sum(pd.MontoProvision) ImporteFinal&#xA;&#x9;&#x9;From cont.Provision (nolock) pp&#xA;&#x9;&#x9;inner join cont.ProvisionDocumentos (nolock) pd&#xA;&#x9;&#x9;&#x9;on pp.IdProvision = pd.IdProvision&#xA;&#x9;&#x9;Where pp.idempresa = @idEmpresa and pp.PeriodoContable = (Select top 1 PeriodoReporte From Temporal.paso)&#xA;&#x9;&#x9;and pp.IdProvisionTipo = 2 and pd.ExcluidoProvision = 0&#xA;&#x9;&#x9;Group by pp.IdProvision ) tt&#xA;&#x9;&#x9;inner join cont.Provision (nolock) dd&#xA;&#x9;&#x9;&#x9;on dd.IdProvision = tt.IdProvision&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::IdMotivoModificaDB"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="3"
+            SQLTask:ParameterSize="-1" />
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="1"
+            SQLTask:DtsVariableName="User::idEmpresa"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="2"
+            SQLTask:ParameterSize="-1" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Cargar Excel a SQL"
+      DTS:CreationName="Microsoft.Pipeline"
+      DTS:DelayValidation="True"
+      DTS:Description="Tarea Flujo de datos"
+      DTS:DTSID="{5A10900E-983C-4A40-A844-77A94AD395CD}"
+      DTS:ExecutableType="Microsoft.Pipeline"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Cargar Excel a SQL"
+      DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <pipeline
+          version="1">
+          <components>
+            <component
+              refId="Package\Cargar Excel a SQL\Conversión de datos"
+              componentClassID="Microsoft.DataConvert"
+              contactInfo="Conversión de datos;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; Todos los derechos reservados; http://www.microsoft.com/sql/support;0"
+              description="Conversión de datos"
+              name="Conversión de datos"
+              usesDispositions="true">
+              <inputs>
+                <input
+                  refId="Package\Cargar Excel a SQL\Conversión de datos.Inputs[Entrada de conversión de datos]"
+                  name="Entrada de conversión de datos">
+                  <inputColumns>
+                    <inputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Inputs[Entrada de conversión de datos].Columns[IdTipoDocumento]"
+                      cachedDataType="r8"
+                      cachedName="IdTipoDocumento"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[IdTipoDocumento]" />
+                    <inputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Inputs[Entrada de conversión de datos].Columns[NroDocumento]"
+                      cachedDataType="wstr"
+                      cachedLength="255"
+                      cachedName="NroDocumento"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[NroDocumento]" />
+                    <inputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Inputs[Entrada de conversión de datos].Columns[Suministro]"
+                      cachedDataType="r8"
+                      cachedName="Suministro"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[Suministro]" />
+                    <inputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Inputs[Entrada de conversión de datos].Columns[PeriodoReporte]"
+                      cachedDataType="r8"
+                      cachedName="PeriodoReporte"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[PeriodoReporte]" />
+                  </inputColumns>
+                  <externalMetadataColumns />
+                </input>
+              </inputs>
+              <outputs>
+                <output
+                  refId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos]"
+                  exclusionGroup="1"
+                  name="Salida de conversión de datos"
+                  synchronousInputId="Package\Cargar Excel a SQL\Conversión de datos.Inputs[Entrada de conversión de datos]">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[IdTipoDocumento]"
+                      dataType="ui1"
+                      errorOrTruncationOperation="Conversión"
+                      errorRowDisposition="FailComponent"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[IdTipoDocumento]"
+                      name="IdTipoDocumento"
+                      truncationRowDisposition="FailComponent">
+                      <properties>
+                        <property
+                          containsID="true"
+                          dataType="System.Int32"
+                          description="Especifica la columna de entrada usada como origen de datos para la conversión."
+                          name="SourceInputColumnLineageID">#{Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[IdTipoDocumento]}</property>
+                        <property
+                          dataType="System.Boolean"
+                          description="Indica si la columna usa las rutinas de análisis más rápidas independientes de la configuración regional."
+                          name="FastParse">false</property>
+                      </properties>
+                    </outputColumn>
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[NroDocumento]"
+                      dataType="wstr"
+                      errorOrTruncationOperation="Conversión"
+                      errorRowDisposition="FailComponent"
+                      length="20"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[NroDocumento]"
+                      name="NroDocumento"
+                      truncationRowDisposition="FailComponent">
+                      <properties>
+                        <property
+                          containsID="true"
+                          dataType="System.Int32"
+                          description="Especifica la columna de entrada usada como origen de datos para la conversión."
+                          name="SourceInputColumnLineageID">#{Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[NroDocumento]}</property>
+                        <property
+                          dataType="System.Boolean"
+                          description="Indica si la columna usa las rutinas de análisis más rápidas independientes de la configuración regional."
+                          name="FastParse">false</property>
+                      </properties>
+                    </outputColumn>
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[Suministro]"
+                      dataType="i4"
+                      errorOrTruncationOperation="Conversión"
+                      errorRowDisposition="FailComponent"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[Suministro]"
+                      name="Suministro"
+                      truncationRowDisposition="FailComponent">
+                      <properties>
+                        <property
+                          containsID="true"
+                          dataType="System.Int32"
+                          description="Especifica la columna de entrada usada como origen de datos para la conversión."
+                          name="SourceInputColumnLineageID">#{Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[Suministro]}</property>
+                        <property
+                          dataType="System.Boolean"
+                          description="Indica si la columna usa las rutinas de análisis más rápidas independientes de la configuración regional."
+                          name="FastParse">false</property>
+                      </properties>
+                    </outputColumn>
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[PeriodoReporte]"
+                      dataType="i4"
+                      errorOrTruncationOperation="Conversión"
+                      errorRowDisposition="FailComponent"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[PeriodoReporte]"
+                      name="PeriodoReporte"
+                      truncationRowDisposition="FailComponent">
+                      <properties>
+                        <property
+                          containsID="true"
+                          dataType="System.Int32"
+                          description="Especifica la columna de entrada usada como origen de datos para la conversión."
+                          name="SourceInputColumnLineageID">#{Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[PeriodoReporte]}</property>
+                        <property
+                          dataType="System.Boolean"
+                          description="Indica si la columna usa las rutinas de análisis más rápidas independientes de la configuración regional."
+                          name="FastParse">false</property>
+                      </properties>
+                    </outputColumn>
+                  </outputColumns>
+                  <externalMetadataColumns />
+                </output>
+                <output
+                  refId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de error de conversión de datos]"
+                  exclusionGroup="1"
+                  isErrorOut="true"
+                  name="Salida de error de conversión de datos"
+                  synchronousInputId="Package\Cargar Excel a SQL\Conversión de datos.Inputs[Entrada de conversión de datos]">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de error de conversión de datos].Columns[ErrorCode]"
+                      dataType="i4"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de error de conversión de datos].Columns[ErrorCode]"
+                      name="ErrorCode"
+                      specialFlags="1" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de error de conversión de datos].Columns[ErrorColumn]"
+                      dataType="i4"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de error de conversión de datos].Columns[ErrorColumn]"
+                      name="ErrorColumn"
+                      specialFlags="2" />
+                  </outputColumns>
+                  <externalMetadataColumns />
+                </output>
+              </outputs>
+            </component>
+            <component
+              refId="Package\Cargar Excel a SQL\Destino NIF"
+              componentClassID="Microsoft.OLEDBDestination"
+              contactInfo="Destino de OLE DB;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; Todos los derechos reservados; http://www.microsoft.com/sql/support;4"
+              description="Destino de OLE DB"
+              name="Destino NIF"
+              usesDispositions="true"
+              version="4">
+              <properties>
+                <property
+                  dataType="System.Int32"
+                  description="Número de segundos antes de que se agote el tiempo de espera de un comando. Un valor de 0 indica un tiempo de espera infinito."
+                  name="CommandTimeout">0</property>
+                <property
+                  dataType="System.String"
+                  description="Especifica el nombre del objeto de base de datos usado para abrir un conjunto de filas."
+                  name="OpenRowset">[Temporal].[Paso]</property>
+                <property
+                  dataType="System.String"
+                  description="Especifica la variable que contiene el nombre del objeto de base de datos usado para abrir un conjunto de filas."
+                  name="OpenRowsetVariable"></property>
+                <property
+                  dataType="System.String"
+                  description="Comando SQL para ejecutar."
+                  name="SqlCommand"
+                  UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor"></property>
+                <property
+                  dataType="System.Int32"
+                  description="Especifica la página de códigos de columna para utilizar cuando la información de página de códigos no está disponible en el origen de datos."
+                  name="DefaultCodePage">1252</property>
+                <property
+                  dataType="System.Boolean"
+                  description="Fuerza el uso del valor de la propiedad DefaultCodePage al describir datos de caracteres."
+                  name="AlwaysUseDefaultCodePage">false</property>
+                <property
+                  dataType="System.Int32"
+                  description="Especifica el modo utilizado para obtener acceso a la base de datos."
+                  name="AccessMode"
+                  typeConverter="AccessMode">3</property>
+                <property
+                  dataType="System.Boolean"
+                  description="Indica si los valores proporcionados para columnas de identidad se van a copiar al destino. Si es False, los valores de las columnas de identidad se generan automáticamente en el destino. Solo se aplica si está activada la carga rápida."
+                  name="FastLoadKeepIdentity">false</property>
+                <property
+                  dataType="System.Boolean"
+                  description="Indica si las columnas que contienen NULL tendrán NULL insertado en el destino. Si es False, las columnas que contienen NULL tendrán sus valores predeterminados insertados en el destino. Solo se aplica si está activada la carga rápida."
+                  name="FastLoadKeepNulls">false</property>
+                <property
+                  dataType="System.String"
+                  description="Especifica opciones para usar con la carga rápida. Solo se aplica si está activada la carga rápida."
+                  name="FastLoadOptions">TABLOCK</property>
+                <property
+                  dataType="System.Int32"
+                  description="Especifica cuándo se emiten confirmaciones durante la inserción de datos. El valor 0 especifica que se emitirá una confirmación al final de la inserción de datos. Solo se aplica si está activada la carga rápida."
+                  name="FastLoadMaxInsertCommitSize">2147483647</property>
+              </properties>
+              <connections>
+                <connection
+                  refId="Package\Cargar Excel a SQL\Destino NIF.Connections[OleDbConnection]"
+                  connectionManagerID="Package.ConnectionManagers[OptimusNGC]"
+                  connectionManagerRefId="Package.ConnectionManagers[OptimusNGC]"
+                  description="La conexión de tiempo de ejecución OLE DB usada para obtener acceso a la base de datos."
+                  name="OleDbConnection" />
+              </connections>
+              <inputs>
+                <input
+                  refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB]"
+                  errorOrTruncationOperation="Insertar"
+                  errorRowDisposition="FailComponent"
+                  hasSideEffects="true"
+                  name="Entrada de destino de OLE DB">
+                  <inputColumns>
+                    <inputColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].Columns[IdTipoDocumento]"
+                      cachedDataType="ui1"
+                      cachedName="IdTipoDocumento"
+                      externalMetadataColumnId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].ExternalColumns[IdTipoDocumento]"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[IdTipoDocumento]" />
+                    <inputColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].Columns[NroDocumento]"
+                      cachedDataType="wstr"
+                      cachedLength="20"
+                      cachedName="NroDocumento"
+                      externalMetadataColumnId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].ExternalColumns[NroDocumento]"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[NroDocumento]" />
+                    <inputColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].Columns[Suministro]"
+                      cachedDataType="i4"
+                      cachedName="Suministro"
+                      externalMetadataColumnId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].ExternalColumns[Suministro]"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[Suministro]" />
+                    <inputColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].Columns[PeriodoReporte]"
+                      cachedDataType="i4"
+                      cachedName="PeriodoReporte"
+                      externalMetadataColumnId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].ExternalColumns[PeriodoReporte]"
+                      lineageId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos].Columns[PeriodoReporte]" />
+                  </inputColumns>
+                  <externalMetadataColumns
+                    isUsed="True">
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].ExternalColumns[IdTipoDocumento]"
+                      dataType="i4"
+                      name="IdTipoDocumento" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].ExternalColumns[NroDocumento]"
+                      dataType="wstr"
+                      length="20"
+                      name="NroDocumento" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].ExternalColumns[Suministro]"
+                      dataType="i4"
+                      name="Suministro" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB].ExternalColumns[PeriodoReporte]"
+                      dataType="i4"
+                      name="PeriodoReporte" />
+                  </externalMetadataColumns>
+                </input>
+              </inputs>
+              <outputs>
+                <output
+                  refId="Package\Cargar Excel a SQL\Destino NIF.Outputs[Salida de error de destino de OLE DB]"
+                  exclusionGroup="1"
+                  isErrorOut="true"
+                  name="Salida de error de destino de OLE DB"
+                  synchronousInputId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB]">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Outputs[Salida de error de destino de OLE DB].Columns[ErrorCode]"
+                      dataType="i4"
+                      lineageId="Package\Cargar Excel a SQL\Destino NIF.Outputs[Salida de error de destino de OLE DB].Columns[ErrorCode]"
+                      name="ErrorCode"
+                      specialFlags="1" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Destino NIF.Outputs[Salida de error de destino de OLE DB].Columns[ErrorColumn]"
+                      dataType="i4"
+                      lineageId="Package\Cargar Excel a SQL\Destino NIF.Outputs[Salida de error de destino de OLE DB].Columns[ErrorColumn]"
+                      name="ErrorColumn"
+                      specialFlags="2" />
+                  </outputColumns>
+                  <externalMetadataColumns />
+                </output>
+              </outputs>
+            </component>
+            <component
+              refId="Package\Cargar Excel a SQL\Origen NIF"
+              componentClassID="Microsoft.ExcelSource"
+              contactInfo="Origen de Excel;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; Todos los derechos reservados; http://www.microsoft.com/sql/support;1"
+              description="Origen de Excel"
+              name="Origen NIF"
+              usesDispositions="true"
+              version="1">
+              <properties>
+                <property
+                  dataType="System.Int32"
+                  description="Número de segundos antes de que se agote el tiempo de espera de un comando. Un valor de 0 indica un tiempo de espera infinito."
+                  name="CommandTimeout">0</property>
+                <property
+                  dataType="System.String"
+                  description="Especifica el nombre del objeto de base de datos usado para abrir un conjunto de filas."
+                  name="OpenRowset">DocumentosProvision$</property>
+                <property
+                  dataType="System.String"
+                  description="Especifica la variable que contiene el nombre del objeto de base de datos usado para abrir un conjunto de filas."
+                  name="OpenRowsetVariable"></property>
+                <property
+                  dataType="System.String"
+                  description="Comando SQL para ejecutar."
+                  name="SqlCommand"
+                  UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor"></property>
+                <property
+                  dataType="System.String"
+                  description="Variable que contiene el comando SQL para ejecutar."
+                  name="SqlCommandVariable"></property>
+                <property
+                  dataType="System.Int32"
+                  description="Especifica el modo utilizado para obtener acceso a la base de datos."
+                  name="AccessMode"
+                  typeConverter="AccessMode">0</property>
+                <property
+                  dataType="System.String"
+                  description="La asignación de parámetros del comando SQL a variables."
+                  name="ParameterMapping"></property>
+              </properties>
+              <connections>
+                <connection
+                  refId="Package\Cargar Excel a SQL\Origen NIF.Connections[OleDbConnection]"
+                  connectionManagerID="Package.ConnectionManagers[Provision NIF Excel]"
+                  connectionManagerRefId="Package.ConnectionManagers[Provision NIF Excel]"
+                  description="La conexión de tiempo de ejecución OLE DB usada para obtener acceso a la base de datos."
+                  name="OleDbConnection" />
+              </connections>
+              <outputs>
+                <output
+                  refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel]"
+                  name="Salida de origen de Excel">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[IdTipoDocumento]"
+                      dataType="r8"
+                      errorOrTruncationOperation="Conversión"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[IdTipoDocumento]"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[IdTipoDocumento]"
+                      name="IdTipoDocumento"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[NroDocumento]"
+                      dataType="wstr"
+                      errorOrTruncationOperation="Conversión"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[NroDocumento]"
+                      length="255"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[NroDocumento]"
+                      name="NroDocumento"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[Suministro]"
+                      dataType="r8"
+                      errorOrTruncationOperation="Conversión"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Suministro]"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[Suministro]"
+                      name="Suministro"
+                      truncationRowDisposition="FailComponent" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[PeriodoReporte]"
+                      dataType="r8"
+                      errorOrTruncationOperation="Conversión"
+                      errorRowDisposition="FailComponent"
+                      externalMetadataColumnId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[PeriodoReporte]"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].Columns[PeriodoReporte]"
+                      name="PeriodoReporte"
+                      truncationRowDisposition="FailComponent" />
+                  </outputColumns>
+                  <externalMetadataColumns
+                    isUsed="True">
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[UNegocio]"
+                      dataType="r8"
+                      name="UNegocio" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[UUNN]"
+                      dataType="wstr"
+                      length="255"
+                      name="UUNN" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Suministro]"
+                      dataType="r8"
+                      name="Suministro" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[PeriodoReporte]"
+                      dataType="r8"
+                      name="PeriodoReporte" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[CServicio]"
+                      dataType="r8"
+                      name="CServicio" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[CentroServicio]"
+                      dataType="wstr"
+                      length="255"
+                      name="CentroServicio" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Sector]"
+                      dataType="r8"
+                      name="Sector" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Cartera]"
+                      dataType="wstr"
+                      length="255"
+                      name="Cartera" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Situacion]"
+                      dataType="wstr"
+                      length="255"
+                      name="Situacion" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[UPFactura]"
+                      dataType="r8"
+                      name="UPFactura" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Documento]"
+                      dataType="wstr"
+                      length="255"
+                      name="Documento" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[IdTipoDocumento]"
+                      dataType="r8"
+                      name="IdTipoDocumento" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[NroDocumento]"
+                      dataType="wstr"
+                      length="255"
+                      name="NroDocumento" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Nombre]"
+                      dataType="wstr"
+                      length="255"
+                      name="Nombre" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Direccion]"
+                      dataType="wstr"
+                      length="255"
+                      name="Direccion" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[SituacionReclamo]"
+                      dataType="r8"
+                      name="SituacionReclamo" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[DeudaRecibos]"
+                      dataType="r8"
+                      name="DeudaRecibos" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[ConveniosInafecto]"
+                      dataType="r8"
+                      name="ConveniosInafecto" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[ConveniosAfecto]"
+                      dataType="r8"
+                      name="ConveniosAfecto" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[DeudaConvenios]"
+                      dataType="r8"
+                      name="DeudaConvenios" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[TotalDeuda]"
+                      dataType="r8"
+                      name="TotalDeuda" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[MDA]"
+                      dataType="r8"
+                      name="MDA" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[Cortado]"
+                      dataType="r8"
+                      name="Cortado" />
+                    <externalMetadataColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel].ExternalColumns[fechaVencimiento]"
+                      dataType="date"
+                      name="fechaVencimiento" />
+                  </externalMetadataColumns>
+                </output>
+                <output
+                  refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel]"
+                  isErrorOut="true"
+                  name="Salida de error de origen de Excel">
+                  <outputColumns>
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[ErrorCode]"
+                      dataType="i4"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[ErrorCode]"
+                      name="ErrorCode"
+                      specialFlags="1" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[ErrorColumn]"
+                      dataType="i4"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[ErrorColumn]"
+                      name="ErrorColumn"
+                      specialFlags="2" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[IdTipoDocumento]"
+                      dataType="r8"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[IdTipoDocumento]"
+                      name="IdTipoDocumento" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[NroDocumento]"
+                      dataType="wstr"
+                      length="255"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[NroDocumento]"
+                      name="NroDocumento" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[Suministro]"
+                      dataType="r8"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[Suministro]"
+                      name="Suministro" />
+                    <outputColumn
+                      refId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[PeriodoReporte]"
+                      dataType="r8"
+                      lineageId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de error de origen de Excel].Columns[PeriodoReporte]"
+                      name="PeriodoReporte" />
+                  </outputColumns>
+                  <externalMetadataColumns />
+                </output>
+              </outputs>
+            </component>
+          </components>
+          <paths>
+            <path
+              refId="Package\Cargar Excel a SQL.Paths[Salida de conversión de datos]"
+              endId="Package\Cargar Excel a SQL\Destino NIF.Inputs[Entrada de destino de OLE DB]"
+              name="Salida de conversión de datos"
+              startId="Package\Cargar Excel a SQL\Conversión de datos.Outputs[Salida de conversión de datos]" />
+            <path
+              refId="Package\Cargar Excel a SQL.Paths[Salida de origen de Excel]"
+              endId="Package\Cargar Excel a SQL\Conversión de datos.Inputs[Entrada de conversión de datos]"
+              name="Salida de origen de Excel"
+              startId="Package\Cargar Excel a SQL\Origen NIF.Outputs[Salida de origen de Excel]" />
+          </paths>
+        </pipeline>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Enviar correo"
+      DTS:CreationName="Microsoft.SendMailTask"
+      DTS:Description="Tarea Enviar correo"
+      DTS:DTSID="{C82FBCE9-FB33-4D66-8F6D-4505710A0666}"
+      DTS:ExecutableType="Microsoft.SendMailTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Enviar correo"
+      DTS:TaskContact="Send Mail Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SendMailTask:SendMailTaskData
+          SendMailTask:SMTPServer="{8192C8A5-B9F2-4EF1-BB3C-BE08670380C0}"
+          SendMailTask:From="serviciosTIC@distriluz.com.pe"
+          SendMailTask:To="Edelgadoc@distriluz.com.pe;vguaniloc@distriluz.com.pe;fzapatar@distriluz.com.pe"
+          SendMailTask:Subject="Notificación Carga de Provisión"
+          SendMailTask:MessageSourceType="Variable"
+          SendMailTask:MessageSource="User::NotificacionBody" xmlns:SendMailTask="www.microsoft.com/sqlserver/dts/tasks/sendmailtask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Get Motivo Modifica"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Tarea Ejecutar SQL"
+      DTS:DTSID="{CB9FF1A6-54B9-431A-B66B-C5FA118BC40E}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Get Motivo Modifica"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{8E976E38-295A-4941-BFC4-AD7B8FFE760D}"
+          SQLTask:SqlStatementSource="If Exists ( Select IdMotivoModificaDB  &#xA;&#x9;&#x9;&#x9;From MotivoModificaDB &#xA;&#x9;&#x9;&#x9;Where Descripcion = 'Marcar documentos provicionados' And TablasAfectadas = 'ProvisionDocumentos' And idestado = 5 )&#xA;&#xA;&#x9;&#x9;&#x9;Select Top 1 IdMotivoModificaDB  &#xA;&#x9;&#x9;&#x9;From MotivoModificaDB &#xA;&#x9;&#x9;&#x9;Where Descripcion = 'Marcar documentos provicionados' And TablasAfectadas = 'ProvisionDocumentos' And idestado = 5&#xA;Else&#xA;Begin &#xA;&#x9;Insert Into MotivoModificaDB (Descripcion, TablasAfectadas, Fecha, IdUsuarioModifica, IdUsuarioAutoriza, IdEstado, IdMesaAyuda)&#xA;&#x9;Select  'Marcar documentos provicionados','ProvisionDocumentos', Getdate(), 20754, 20754, 5, Null &#xA;&#x9;Select @@IDENTITY As IdMotivoModificaDB&#xA;End "
+          SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ResultBinding
+            SQLTask:ResultName="IdMotivoModificaDB"
+            SQLTask:DtsVariableName="User::IdMotivoModificaDB" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Obtener Mensaje del Correo"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Tarea Ejecutar SQL"
+      DTS:DTSID="{FC56288D-03AE-4E29-A35A-1C120C55ED28}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Obtener Mensaje del Correo"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{8E976E38-295A-4941-BFC4-AD7B8FFE760D}"
+          SQLTask:SqlStatementSource="Set Nocount On &#xA;&#xA;Declare @Periodo int, @idEmpresa smallint = ?,  &#xA;@Mensaje varchar(800) = 'Estimados Srs.' + char(13) + char(10) + char(13) + 'Se adjunta la información de la Provision NIF : ' + char(13) + char(10)  &#xA;&#xA;Select @Periodo = PeriodoReporte From Temporal.paso &#xA;&#xA;Drop Table If Exists #Provision&#xA;Create Table #Provision (idProvision int, UnidadNegocio varchar(70), FechaProvision datetime, MontoProvision Money)&#xA;&#xA;Insert Into #Provision &#xA;Exec dbo.provision_asientoresumen_pa @P_IdEmpresa = @idEmpresa, @P_Periodo = @Periodo, @P_IdProvisionTipo = 1&#xA;&#xA;Select @Mensaje = @Mensaje + char(9) + UnidadNegocio + ' : ' + Convert( varchar(20), MontoProvision,1) + char(13) + char(10) From #Provision &#xA;&#xA;Delete From #Provision&#xA;&#xA;Select @Mensaje  = @Mensaje +  char(13) + char(10) + 'Se adjunta la información de la Provision Tributaria : ' + char(13) + char(10)   &#xA;&#xA;Insert Into #Provision &#xA;Exec dbo.provision_asientoresumen_pa @P_IdEmpresa = @idEmpresa, @P_Periodo = @Periodo, @P_IdProvisionTipo = 2&#xA;&#xA;Select @Mensaje = @Mensaje + char(9) + UnidadNegocio + ' : ' + Convert( varchar(20), MontoProvision,1) + char(13) + char(10) From #Provision &#xA;&#xA;Select @Mensaje +  char(13) + char(10) + 'Atte.' As NotificacionBody&#xA;"
+          SQLTask:ResultType="ResultSetType_SingleRow" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ResultBinding
+            SQLTask:ResultName="NotificacionBody"
+            SQLTask:DtsVariableName="User::NotificacionBody" />
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::idEmpresa"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="2"
+            SQLTask:ParameterSize="-1" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Recrea Tabla Paso"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Tarea Ejecutar SQL"
+      DTS:DTSID="{89565874-25EB-4FC8-BAD8-A37DD301E408}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Recrea Tabla Paso"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{8E976E38-295A-4941-BFC4-AD7B8FFE760D}"
+          SQLTask:SqlStatementSource="DROP TABLE IF EXISTS Temporal.Paso&#xA;Go &#xA;CREATE TABLE [Temporal].[Paso] (&#xA;    [IdTipoDocumento] int,&#xA;    [NroDocumento] nvarchar(20),&#xA;    [Suministro] int,&#xA;    [PeriodoReporte] int&#xA;)&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:PrecedenceConstraints>
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Restricción]"
+      DTS:CreationName=""
+      DTS:DTSID="{A3A71487-E41D-4752-9F6B-80DD56FE6142}"
+      DTS:From="Package\Recrea Tabla Paso"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Restricción"
+      DTS:To="Package\Cargar Excel a SQL" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Restricción 1]"
+      DTS:CreationName=""
+      DTS:DTSID="{193C4A30-579B-4A45-B5CB-08A50A5A1F79}"
+      DTS:From="Package\Cargar Excel a SQL"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Restricción 1"
+      DTS:To="Package\Get Motivo Modifica" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Restricción 2]"
+      DTS:CreationName=""
+      DTS:DTSID="{27BBFE10-BE9A-437D-B627-E4EB03A743F4}"
+      DTS:From="Package\Get Motivo Modifica"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Restricción 2"
+      DTS:To="Package\Actualizar Provision de Cobranza" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Restricción 3]"
+      DTS:CreationName=""
+      DTS:DTSID="{1F179BEB-A2F2-4498-8C02-7EC67A3E7D4A}"
+      DTS:From="Package\Actualizar Provision de Cobranza"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Restricción 3"
+      DTS:To="Package\Obtener Mensaje del Correo" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Restricción 4]"
+      DTS:CreationName=""
+      DTS:DTSID="{E3FC68A4-C9F2-46CA-8AA9-9D3B32267DAD}"
+      DTS:From="Package\Obtener Mensaje del Correo"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Restricción 4"
+      DTS:To="Package\Enviar correo" />
+  </DTS:PrecedenceConstraints>
+  <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
+<!--Esta sección CDATA contiene la información de diseño del paquete. Esta sección incluye información como, por ejemplo, las coordenadas (x,y), el ancho y el alto.-->
+<!--Si edita manualmente esta sección y comete un error, puede eliminarlo. -->
+<!--El paquete podrá cargarse normalmente, pero se perderá la información de diseño anterior y el diseñador reorganizará los elementos automáticamente en la superficie de diseño.-->
+<Objects
+  Version="8">
+  <!--Cada uno de los nodos siguientes contiene propiedades que no afectan al comportamiento en tiempo de ejecución.-->
+  <Package
+    design-time-name="Package">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="16" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        <NodeLayout
+          Size="241,42"
+          Id="Package\Actualizar Provision de Cobranza"
+          TopLeft="41,442" />
+        <NodeLayout
+          Size="176,42"
+          Id="Package\Cargar Excel a SQL"
+          TopLeft="68,169" />
+        <NodeLayout
+          Size="144,42"
+          Id="Package\Enviar correo"
+          TopLeft="600,448" />
+        <NodeLayout
+          Size="176,42"
+          Id="Package\Get Motivo Modifica"
+          TopLeft="67,298" />
+        <NodeLayout
+          Size="218,42"
+          Id="Package\Obtener Mensaje del Correo"
+          TopLeft="336,445" />
+        <NodeLayout
+          Size="173,42"
+          Id="Package\Recrea Tabla Paso"
+          TopLeft="64,43" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Restricción]"
+          TopLeft="153.25,85">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,84"
+              Start="0,0"
+              End="0,76.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,76.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Restricción 1]"
+          TopLeft="155.5,211">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,87"
+              Start="0,0"
+              End="0,79.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,79.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Restricción 2]"
+          TopLeft="158.25,340">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,102"
+              Start="0,0"
+              End="0,94.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,94.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Restricción 3]"
+          TopLeft="282,464.5">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="54,0"
+              Start="0,0"
+              End="46.5,0">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="46.5,0" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Restricción 4]"
+          TopLeft="554,467.5">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="46,0"
+              Start="0,0"
+              End="38.5,0">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="38.5,0" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </Package>
+  <TaskHost
+    design-time-name="Package\Cargar Excel a SQL">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="8" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
+        <NodeLayout
+          Size="137,42"
+          Id="Package\Cargar Excel a SQL\Destino NIF"
+          TopLeft="200,337" />
+        <NodeLayout
+          Size="180,42"
+          Id="Package\Cargar Excel a SQL\Conversión de datos"
+          TopLeft="173,229" />
+        <NodeLayout
+          Size="133,42"
+          Id="Package\Cargar Excel a SQL\Origen NIF"
+          TopLeft="189,131" />
+        <EdgeLayout
+          Id="Package\Cargar Excel a SQL.Paths[Salida de origen de Excel]"
+          TopLeft="259.25,173">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,56"
+              Start="0,0"
+              End="0,48.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,48.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package\Cargar Excel a SQL.Paths[Salida de conversión de datos]"
+          TopLeft="265.75,271">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,66"
+              Start="0,0"
+              End="0,58.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,58.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </TaskHost>
+  <PipelineComponentMetadata
+    design-time-name="Package\Cargar Excel a SQL\Destino NIF">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+      <Property>
+        <Name>TableInfoObjectType</Name>
+        <Value
+          type="q2:string">Table</Value>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+  <PipelineComponentMetadata
+    design-time-name="Package\Cargar Excel a SQL\Origen NIF">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+      <Property>
+        <Name>TableInfoObjectType</Name>
+        <Value
+          type="q2:string">Table</Value>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+</Objects>]]></DTS:DesignTimeProperties>
+</DTS:Executable>
